@@ -1,13 +1,21 @@
 package dev.ghostbyte.nowandagain.widget
 
 import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.createBitmap
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.glance.ColorFilter
@@ -40,9 +48,9 @@ import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -65,41 +73,21 @@ import dev.ghostbyte.nowandagain.domain.markDone
 import dev.ghostbyte.nowandagain.domain.progress
 import dev.ghostbyte.nowandagain.domain.status
 import dev.ghostbyte.nowandagain.ui.theme.DarkColorScheme
+import dev.ghostbyte.nowandagain.ui.theme.DarkOutlineVariant
 import dev.ghostbyte.nowandagain.ui.theme.Green40
 import dev.ghostbyte.nowandagain.ui.theme.Green80
-import dev.ghostbyte.nowandagain.ui.theme.Grey200
-import dev.ghostbyte.nowandagain.ui.theme.Grey300
-import dev.ghostbyte.nowandagain.ui.theme.Grey750
 import dev.ghostbyte.nowandagain.ui.theme.LightColorScheme
+import dev.ghostbyte.nowandagain.ui.theme.LightOutlineVariant
 import dev.ghostbyte.nowandagain.ui.theme.Orange40
 import dev.ghostbyte.nowandagain.ui.theme.Orange80
 import dev.ghostbyte.nowandagain.ui.theme.Red40
 import dev.ghostbyte.nowandagain.ui.theme.Red80
 import java.time.LocalDateTime
-import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.RectF
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.toArgb
-import androidx.glance.layout.ContentScale
-import dev.ghostbyte.nowandagain.ui.theme.Black
-import dev.ghostbyte.nowandagain.ui.theme.White
-import androidx.core.graphics.createBitmap
 
 private val WidgetColors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)
-
-private val WidgetGreen = ColorProvider(day = Green40, night = Green80)
-private val WidgetOrange = ColorProvider(day = Orange40, night = Orange80)
-private val WidgetRed = ColorProvider(day = Red40, night = Red80)
-
-// Same values as surfaceContainerHighest and outlineVariant in the app theme
-private val WidgetTrack = ColorProvider(day = Grey200, night = Grey750)
 private val WidgetDivider = ColorProvider(
-    day = Grey300.copy(alpha = 0.5f),
-    night = Grey750.copy(alpha = 0.5f),
+    day = LightOutlineVariant.copy(alpha = 0.5f),
+    night = DarkOutlineVariant.copy(alpha = 0.5f),
 )
 
 private val BarHeight = 10.dp
@@ -270,13 +258,16 @@ private fun SegmentedBar(progress: Float, intervalDays: Int, status: TaskStatus)
     val dark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
 
+    val light = LightColorScheme
+    val darkScheme = DarkColorScheme
+
     val fill = when (status) {
         TaskStatus.DoneToday -> if (dark) Green80 else Green40
         TaskStatus.DueToday -> if (dark) Orange80 else Orange40
         TaskStatus.Overdue -> if (dark) Red80 else Red40
-        TaskStatus.Fine -> if (dark) White else Black
+        TaskStatus.Fine -> if (dark) darkScheme.primary else light.primary
     }.toArgb()
-    val track = (if (dark) Grey750 else Grey200).toArgb()
+    val track = (if (dark) darkScheme.surfaceContainerHighest else light.surfaceContainerHighest).toArgb()
 
     // The image is scaled to the real width, so this only needs to be close.
     val widthPx = (((LocalSize.current.width - 40.dp).value) * density).toInt().coerceIn(200, 720)

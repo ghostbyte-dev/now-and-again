@@ -3,15 +3,12 @@
     <string name="widget_description">Your next tasks at a glance</string>
 
     <!-- Actions -->
-    <string name="action_done">Done</string>
     <string name="action_undo">Undo</string>
     <string name="action_save">Save</string>
     <string name="action_delete">Delete</string>
 
     <!-- Accessibility -->
     <string name="cd_add_task">Add task</string>
-    <string name="cd_switch_to_light">Switch to light mode</string>
-    <string name="cd_switch_to_dark">Switch to dark mode</string>
     <string name="cd_done_today">Done today</string>
     <string name="cd_open_website">Open ghostbyte.dev</string>
 
@@ -38,7 +35,6 @@
 
     <!-- Footer -->
     <string name="footer_credit" translatable="false">A Ghostbyte Production</string>
-    <string name="website_url" translatable="false">https://ghostbyte.dev</string>
 
     <!-- Task labels -->
     <string name="overdue_one_day">Overdue by 1 day</string>
@@ -72,19 +68,14 @@
     <string name="cd_open_settings">Open settings</string>
     <string name="cd_back">Back</string>
     <string name="section_appearance">Appearance</string>
-    <string name="setting_theme">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="section_reminder">Reminder</string>
     <string name="setting_reminder">Daily reminder</string>
-    <string name="setting_reminder_desc">A summary of tasks that are due</string>
     <string name="setting_reminder_time">Time</string>
     <string name="notifications_blocked">Notifications are turned off for this app.</string>
     <string name="notifications_open_settings">Open settings</string>
-    <string name="section_about">About</string>
-    <string name="setting_version">Version</string>
-    <string name="privacy_note">Everything stays on your device.</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>
 

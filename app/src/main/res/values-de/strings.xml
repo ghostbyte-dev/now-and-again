@@ -2,14 +2,11 @@
     <string name="app_name">Now &amp; Again</string>
     <string name="widget_description">Deine nächsten Aufgaben auf einen Blick</string>
 
-    <string name="action_done">Erledigt</string>
     <string name="action_undo">Rückgängig</string>
     <string name="action_save">Speichern</string>
     <string name="action_delete">Löschen</string>
 
     <string name="cd_add_task">Aufgabe hinzufügen</string>
-    <string name="cd_switch_to_light">Zum hellen Modus wechseln</string>
-    <string name="cd_switch_to_dark">Zum dunklen Modus wechseln</string>
     <string name="cd_done_today">Heute erledigt</string>
     <string name="cd_open_website">ghostbyte.dev öffnen</string>
 
@@ -62,20 +59,15 @@
     <string name="cd_open_settings">Einstellungen öffnen</string>
     <string name="cd_back">Zurück</string>
     <string name="section_appearance">Darstellung</string>
-    <string name="setting_theme">Design</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
     <string name="section_reminder">Erinnerung</string>
     <string name="section_widget">Widget</string>
     <string name="setting_reminder">Tägliche Erinnerung</string>
-    <string name="setting_reminder_desc">Eine Übersicht der fälligen Aufgaben</string>
     <string name="setting_reminder_time">Uhrzeit</string>
     <string name="notifications_blocked">Benachrichtigungen sind für diese App ausgeschaltet.</string>
     <string name="notifications_open_settings">Einstellungen öffnen</string>
-    <string name="section_about">Über die App</string>
-    <string name="setting_version">Version</string>
-    <string name="privacy_note">Alles bleibt auf deinem Gerät.</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Abbrechen</string>
 

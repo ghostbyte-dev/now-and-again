@@ -2,36 +2,35 @@ package dev.ghostbyte.nowandagain.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Neutrals
-val Black = Color(0xFF000000)
-val White = Color(0xFFFFFFFF)
+// Light: paper and ink
+val Paper = Color(0xFFF5F5F3)
+val Ink = Color(0xFF1A1A1A)
+val LightLowest = Color(0xFFFBFBFA)
+val LightLow = Color(0xFFEFEFED)
+val LightContainer = Color(0xFFEAEAE8)
+val LightHigh = Color(0xFFE4E4E2)
+val LightHighest = Color(0xFFDDDDDB)
+val LightVariantText = Color(0xFF5C5C5C)
+val LightOutline = Color(0xFF8A8A8A)
+val LightOutlineVariant = Color(0xFFCFCFCD)
 
-// Light surfaces (white -> light grey)
-val Grey50 = Color(0xFFF7F7F7)
-val Grey100 = Color(0xFFF1F1F1)
-val Grey150 = Color(0xFFEAEAEA)
-val Grey200 = Color(0xFFE3E3E3)
+// Dark: charcoal and soft white
+val Charcoal = Color(0xFF121212)
+val SoftWhite = Color(0xFFEDEDED)
+val DarkLowest = Color(0xFF0E0E0E)
+val DarkLow = Color(0xFF171717)
+val DarkContainer = Color(0xFF1C1C1C)
+val DarkHigh = Color(0xFF222222)
+val DarkHighest = Color(0xFF2A2A2A)
+val DarkVariantText = Color(0xFFA3A3A3)
+val DarkOutline = Color(0xFF7A7A7A)
+val DarkOutlineVariant = Color(0xFF333333)
 
-// Dark surfaces (black -> dark grey)
-val Grey900 = Color(0xFF0D0D0D)
-val Grey850 = Color(0xFF161616)
-val Grey800 = Color(0xFF1E1E1E)
-val Grey750 = Color(0xFF262626)
-
-// Text and lines
-val Grey300 = Color(0xFFC9C9C9)
-val Grey500 = Color(0xFF777777)
-val Grey600 = Color(0xFF4D4D4D)
-val Grey400 = Color(0xFFA8A8A8)
-
-// The one accent: overdue
-val Red40 = Color(0xFFB3261E)
-val Red80 = Color(0xFFF2B8B5)
-val RedContainerLight = Color(0xFFF9DEDC)
-val RedContainerDark = Color(0xFF601410)
 
 // Status colors (light mode / dark mode)
+val Red40 = Color(0xFFB3261E)
+val Red80 = Color(0xFFFF5247)
 val Green40 = Color(0xFF2E7D32)
 val Green80 = Color(0xFF81C784)
-val Orange40 = Color(0xFFC65100)
+val Orange40 = Color(0xFFD97000)
 val Orange80 = Color(0xFFFFB74D)

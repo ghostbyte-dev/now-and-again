@@ -76,7 +76,18 @@ import dev.ghostbyte.nowandagain.ui.theme.Orange80
 import dev.ghostbyte.nowandagain.ui.theme.Red40
 import dev.ghostbyte.nowandagain.ui.theme.Red80
 import java.time.LocalDateTime
-import kotlin.math.roundToInt
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.toArgb
+import androidx.glance.layout.ContentScale
+import dev.ghostbyte.nowandagain.ui.theme.Black
+import dev.ghostbyte.nowandagain.ui.theme.White
+import androidx.core.graphics.createBitmap
 
 private val WidgetColors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)
 
@@ -180,12 +191,6 @@ private fun TaskRow(task: Task, now: LocalDateTime, barWidth: Dp) {
     val today = now.toLocalDate()
     val status = task.status(today)
 
-    val barColor = when (status) {
-        TaskStatus.DoneToday -> WidgetGreen
-        TaskStatus.DueToday -> WidgetOrange
-        TaskStatus.Overdue -> WidgetRed
-        TaskStatus.Fine -> GlanceTheme.colors.primary
-    }
     val progress = if (status == TaskStatus.DoneToday) 1f else task.progress(now).coerceIn(0f, 1f)
 
     Column(
@@ -234,7 +239,7 @@ private fun TaskRow(task: Task, now: LocalDateTime, barWidth: Dp) {
         SegmentedBar(
             progress = progress,
             intervalDays = task.intervalDays,
-            fill = barColor,
+            status = status,
         )
     }
 }
@@ -258,49 +263,83 @@ private fun DoneButton(task: Task) {
     }
 }
 
-private const val MAX_SEGMENTS = 31
-
 @Composable
-private fun SegmentedBar(
+private fun SegmentedBar(progress: Float, intervalDays: Int, status: TaskStatus) {
+    val context = LocalContext.current
+    val density = context.resources.displayMetrics.density
+    val dark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    val fill = when (status) {
+        TaskStatus.DoneToday -> if (dark) Green80 else Green40
+        TaskStatus.DueToday -> if (dark) Orange80 else Orange40
+        TaskStatus.Overdue -> if (dark) Red80 else Red40
+        TaskStatus.Fine -> if (dark) White else Black
+    }.toArgb()
+    val track = (if (dark) Grey750 else Grey200).toArgb()
+
+    // The image is scaled to the real width, so this only needs to be close.
+    val widthPx = (((LocalSize.current.width - 40.dp).value) * density).toInt().coerceIn(200, 720)
+    val heightPx = (BarHeight.value * density).toInt().coerceAtLeast(8)
+
+    val bitmap = remember(widthPx, heightPx, intervalDays, progress, fill, track) {
+        drawBar(
+            widthPx = widthPx,
+            heightPx = heightPx,
+            days = intervalDays,
+            progress = progress,
+            fill = fill,
+            track = track,
+            gapPx = SegmentGap.value * density,
+            radiusPx = 3f * density,
+        )
+    }
+
+    Image(
+        provider = ImageProvider(bitmap),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = GlanceModifier.fillMaxWidth().height(BarHeight),
+    )
+}
+
+private fun drawBar(
+    widthPx: Int,
+    heightPx: Int,
+    days: Int,
     progress: Float,
-    intervalDays: Int,
-    fill: androidx.glance.unit.ColorProvider,
-) {
-    // One segment per day. Very long intervals fall back to one plain bar.
-    val segments = if (intervalDays <= MAX_SEGMENTS) intervalDays else 1
-    val slices = if (segments == 1) 40 else 10
+    fill: Int,
+    track: Int,
+    gapPx: Float,
+    radiusPx: Float,
+): Bitmap {
+    val bitmap = createBitmap(widthPx, heightPx)
+    val canvas = Canvas(bitmap)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val w = widthPx.toFloat()
+    val h = heightPx.toFloat()
 
-    Row(
-        modifier = GlanceModifier
-            .fillMaxWidth()
-            .height(BarHeight)
-            .cornerRadius(3.dp),
-    ) {
-        for (i in 0 until segments) {
-            if (i > 0) Spacer(GlanceModifier.width(SegmentGap))
+    // One segment per day, unless a day would be thinner than two gaps (same rule as the app)
+    val fits = (w - gapPx * (days - 1)) / days >= gapPx * 2
+    val segments = if (days > 1 && fits) days else 1
+    val segmentWidth = (w - gapPx * (segments - 1)) / segments
 
-            val part = (progress * segments - i).coerceIn(0f, 1f)
-            val segment = GlanceModifier.defaultWeight().height(BarHeight)
+    canvas.clipPath(Path().apply {
+        addRoundRect(RectF(0f, 0f, w, h), radiusPx, radiusPx, Path.Direction.CW)
+    })
 
-            when {
-                part >= 0.999f -> Box(segment.background(fill)) {}
-                part <= 0.001f -> Box(segment.background(WidgetTrack)) {}
-                else -> {
-                    val filledSlices = (part * slices).roundToInt()
-                    Row(segment) {
-                        repeat(slices) { s ->
-                            Box(
-                                GlanceModifier
-                                    .defaultWeight()
-                                    .fillMaxHeight()
-                                    .background(if (s < filledSlices) fill else WidgetTrack)
-                            ) {}
-                        }
-                    }
-                }
-            }
+    for (i in 0 until segments) {
+        val left = i * (segmentWidth + gapPx)
+        val part = (progress * segments - i).coerceIn(0f, 1f)
+
+        paint.color = track
+        canvas.drawRect(left, 0f, left + segmentWidth, h, paint)
+        if (part > 0f) {
+            paint.color = fill
+            canvas.drawRect(left, 0f, left + segmentWidth * part, h, paint)
         }
     }
+    return bitmap
 }
 
 class MarkDoneAction : ActionCallback {

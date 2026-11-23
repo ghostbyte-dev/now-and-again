@@ -15,4 +15,4 @@ data class Task(
 )
 
 /** The day the clock started: last completion, or creation if never done. */
-val dev.ghostbyte.nowandagain.data.Task.startDate: LocalDate get() = lastDoneDate ?: createdDate
+val Task.startDate: LocalDate get() = lastDoneDate ?: createdDate.minusDays(1)

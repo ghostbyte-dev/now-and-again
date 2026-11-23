@@ -32,9 +32,9 @@
     <string name="preset_weeks">%1$d weeks</string>
 
     <!-- Empty state -->
-    <string name="empty_title">Keep up with what matters</string>
-    <string name="empty_body">Add something you want to do regularly, like calling your dad, watering the plants or going for a run, and choose the longest break you\'re okay with. Tap Done whenever you\'ve done it and the timer starts over. Doing it earlier is always fine.</string>
-    <string name="empty_action">Add your first task</string>
+    <string name="empty_title">A deadline that resets</string>
+    <string name="empty_body">Choose the longest break you\'re okay with. Tap the check whenever you\'ve done it, and the timer starts over. Doing it earlier is always fine.</string>    <string name="empty_action">Add your first task</string>
+    <string name="empty_sample_name">Call Sam</string>
 
     <!-- Footer -->
     <string name="footer_credit" translatable="false">A Ghostbyte Production</string>

@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -50,6 +49,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
@@ -60,6 +61,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -67,6 +69,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -87,25 +90,21 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -124,15 +123,11 @@ import dev.ghostbyte.nowandagain.ui.theme.SettingsButton
 import dev.ghostbyte.nowandagain.ui.theme.barColor
 import dev.ghostbyte.nowandagain.widget.WidgetPinner
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.rememberDatePickerState
-import java.time.Instant
 
 private sealed interface SheetMode {
     data object Add : SheetMode
@@ -223,12 +218,10 @@ fun HomeScreen(
                                 if (visibleTasks < taskCount) {
                                     footerMinPx
                                 } else {
-                                    val used = info.beforeContentPadding +
-                                            visible.sumOf { it.size } +
-                                            info.afterContentPadding
+                                    val used =
+                                        info.beforeContentPadding + visible.sumOf { it.size } + info.afterContentPadding
                                     maxOf(
-                                        footerMinPx,
-                                        info.viewportSize.height + footerMinPx - used
+                                        footerMinPx, info.viewportSize.height + footerMinPx - used
                                     )
                                 }
                             }
@@ -437,32 +430,12 @@ private fun TaskListItem(
         }
         Spacer(Modifier.height(12.dp))
 
-        val gapColor = MaterialTheme.colorScheme.background
-        val days = item.task.intervalDays
-
-        LinearProgressIndicator(
-            progress = { animated },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .drawWithContent {
-                    drawContent()
-                    val gap = 2.dp.toPx()
-                    // Skip the gaps when a day would be thinner than 4 dp
-                    if (days > 1 && size.width / days >= gap * 2) {
-                        for (d in 1 until days) {
-                            val x = size.width * d / days
-                            drawRect(gapColor, Offset(x - gap / 2, 0f), Size(gap, size.height))
-                        }
-                    }
-                },
+        SegmentedProgressBar(
+            progress = animated,
+            days = item.task.intervalDays,
             color = barColor,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            strokeCap = StrokeCap.Butt,
-            gapSize = 0.dp,
-            drawStopIndicator = {},
         )
+
         Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -484,48 +457,93 @@ private fun TaskListItem(
 
 @Composable
 private fun EmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-
     BoxWithConstraints(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = maxHeight)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 24.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
-            Image(
-                painter = painterResource(
-                    if (dark) R.drawable.playful_cat else R.drawable.playful_cat
-                ),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 240.dp),
-            )
-            Spacer(Modifier.height(32.dp))
+            SampleTask()
+            Spacer(Modifier.height(40.dp))
             Text(
                 stringResource(R.string.empty_title),
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(12.dp))
             Text(
                 stringResource(R.string.empty_body),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(32.dp))
             Button(
                 onClick = onAdd,
                 shape = MaterialTheme.shapes.small,
+                modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 28.dp, vertical = 16.dp),
             ) { Text(stringResource(R.string.empty_action)) }
+        }
+    }
+}
+
+@Composable
+private fun SampleTask() {
+    val resources = LocalResources.current
+    val tile = MaterialTheme.colorScheme.surfaceContainerLow
+    // Done yesterday, 3 day interval: the label shows a weekday
+    val sample = remember {
+        val yesterday = LocalDate.now().minusDays(1)
+        Task(name = "", intervalDays = 3, createdDate = yesterday, lastDoneDate = yesterday)
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics {},
+        shape = MaterialTheme.shapes.medium,
+        color = tile,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.empty_sample_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        sample.dueLabel(resources),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            SegmentedProgressBar(
+                progress = 1f / 3f,
+                days = 3,
+                color = MaterialTheme.colorScheme.primary,
+                gapColor = tile,
+            )
         }
     }
 }
@@ -567,6 +585,38 @@ private fun TaskSheet(
             SheetContent(initial, onSave, onDelete)
         }
     }
+}
+
+@Composable
+private fun SegmentedProgressBar(
+    progress: Float,
+    days: Int,
+    color: Color,
+    modifier: Modifier = Modifier,
+    gapColor: Color = MaterialTheme.colorScheme.background,
+) {
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(10.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .drawWithContent {
+                drawContent()
+                val gap = 2.dp.toPx()
+                if (days > 1 && size.width / days >= gap * 2) {
+                    for (d in 1 until days) {
+                        val x = size.width * d / days
+                        drawRect(gapColor, Offset(x - gap / 2, 0f), Size(gap, size.height))
+                    }
+                }
+            },
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        strokeCap = StrokeCap.Butt,
+        gapSize = 0.dp,
+        drawStopIndicator = {},
+    )
 }
 
 @Composable
@@ -715,8 +765,7 @@ private fun LastDoneDialog(
 
 // The picker works with UTC midnight timestamps, so convert in UTC.
 // Using the local zone would give a date that's off by one in some time zones.
-private fun LocalDate.toUtcMillis(): Long =
-    atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 private fun Long.toLocalDateUtc(): LocalDate =
     Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()

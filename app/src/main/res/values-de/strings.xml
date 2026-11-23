@@ -27,8 +27,9 @@
     <string name="preset_days">%1$d Tage</string>
     <string name="preset_weeks">%1$d Wochen</string>
 
-    <string name="empty_title">Bleib dran bei dem, was zählt</string>
-    <string name="empty_body">Füge etwas hinzu, das du regelmäßig tun möchtest, etwa deinen Papa anrufen, die Pflanzen gießen oder laufen gehen, und lege die längste Pause fest, die für dich in Ordnung ist. Tippe auf Erledigt, sobald du es getan hast, dann startet der Timer neu. Früher ist immer okay.</string>
+    <string name="empty_title">Eine Frist, die sich erneuert</string>
+    <string name="empty_body">Lege die längste Pause fest, die für dich in Ordnung ist. Tippe auf den Haken, sobald du es getan hast, dann startet der Timer neu. Früher ist immer okay.</string>
+    <string name="empty_sample_name">Sam anrufen</string>
     <string name="empty_action">Erste Aufgabe hinzufügen</string>
 
     <string name="overdue_one_day">1 Tag überfällig</string>

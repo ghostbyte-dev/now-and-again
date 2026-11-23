@@ -47,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -100,9 +101,10 @@ fun SettingsScreen(onBack: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .padding(horizontal = 20.dp),
+                .height(120.dp)
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             TopBarButton(onClick = onBack) {
                 Icon(
@@ -111,19 +113,20 @@ fun SettingsScreen(onBack: () -> Unit) {
                     modifier = Modifier.size(22.dp),
                 )
             }
+            Text(
+                text = stringResource(R.string.settings_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
+            )
         }
 
-        Text(
-            stringResource(R.string.settings_title),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .padding(top = 16.dp, bottom = 24.dp)
-                .semantics { heading() },
-        )
-
-        // Theme
+        // Appearance
+        SectionLabel(stringResource(R.string.section_appearance))
         val modes = listOf(
             ThemeMode.System to R.string.theme_system,
             ThemeMode.Light to R.string.theme_light,
@@ -132,7 +135,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         SingleChoiceSegmentedButtonRow(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             modes.forEachIndexed { index, (mode, label) ->
                 SegmentedButton(
@@ -148,9 +151,8 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
 
-        ListDivider()
-
-        // Reminder
+// Reminder
+        SectionLabel(stringResource(R.string.section_reminder))
         SettingsRow(
             title = stringResource(R.string.setting_reminder),
             onClick = {
@@ -190,8 +192,9 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
 
+// Widget
         if (canPinWidget && !hasWidget) {
-            ListDivider()
+            SectionLabel(stringResource(R.string.section_widget))
             SettingsRow(
                 title = stringResource(R.string.setting_widget),
                 onClick = { WidgetPinner.requestPin(context) },
@@ -204,7 +207,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
 
-        AppFooter(Modifier.padding(top = 128.dp))
+        //AppFooter(Modifier.padding(top = 64.dp))
     }
 
     if (showTimePicker) {
@@ -244,6 +247,18 @@ private fun SettingsRow(
     }
 }
 
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .padding(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 8.dp)
+            .semantics { heading() },
+    )
+}
+
 private fun toggleReminder(
     context: Context,
     repo: SettingsRepository,
@@ -252,8 +267,7 @@ private fun toggleReminder(
 ) {
     repo.setReminderEnabled(enabled)
     if (enabled && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.POST_NOTIFICATIONS
+            context, Manifest.permission.POST_NOTIFICATIONS
         ) != PackageManager.PERMISSION_GRANTED
     ) {
         requestPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -263,13 +277,11 @@ private fun toggleReminder(
 private fun openNotificationSettings(context: Context) {
     context.startActivity(
         Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(
-            Settings.EXTRA_APP_PACKAGE,
-            context.packageName
+            Settings.EXTRA_APP_PACKAGE, context.packageName
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReminderTimeDialog(
     initialHour: Int,

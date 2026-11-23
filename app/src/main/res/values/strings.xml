@@ -93,4 +93,6 @@
 
     <string name="cd_mark_done">Mark %1$s as done</string>
     <string name="field_last_done">Last done</string>
+
+    <string name="section_widget">Widget</string>
 </resources>

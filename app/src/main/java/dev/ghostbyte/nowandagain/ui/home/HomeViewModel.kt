@@ -1,7 +1,6 @@
 package dev.ghostbyte.nowandagain.ui.home
 
 import android.app.Application
-import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.ghostbyte.nowandagain.data.AppDatabase
@@ -12,7 +11,7 @@ import dev.ghostbyte.nowandagain.domain.daysLeft
 import dev.ghostbyte.nowandagain.domain.markDone
 import dev.ghostbyte.nowandagain.domain.progress
 import dev.ghostbyte.nowandagain.domain.status
-import dev.ghostbyte.nowandagain.widget.NextTasksWidget
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,11 +19,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
-
-import java.time.Duration
-import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 data class TaskItem(
@@ -41,8 +38,7 @@ data class HomeUiState(
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repo = TaskRepository(AppDatabase.get(app).taskDao())
-
+    private val repo = TaskRepository(AppDatabase.get(app).taskDao(), app)
     // Emits today's date, and again right after every midnight,
     // so overdue states refresh while the app is open.
     private val today: Flow<LocalDate> = flow {
@@ -69,14 +65,6 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 .sortedWith(compareBy({ it.daysLeft }, { -it.progress }))
             HomeUiState(items = items, loading = false)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
-
-    init {
-        viewModelScope.launch {
-            repo.tasks.collect {
-                NextTasksWidget().updateAll(getApplication<Application>())
-            }
-        }
-    }
 
     fun addTask(name: String, intervalDays: Int) {
         viewModelScope.launch { repo.add(name, intervalDays) }

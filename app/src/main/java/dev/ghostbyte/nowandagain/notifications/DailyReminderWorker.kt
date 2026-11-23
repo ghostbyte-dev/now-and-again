@@ -32,7 +32,7 @@ class DailyReminderWorker(
             if (settings.reminderEnabled && due.isNotEmpty()) {
                 Notifications.postDue(applicationContext, due, today)
             }
-            NextTasksWidget().updateAll(applicationContext)
+            NextTasksWidget.refresh(applicationContext)
         } finally {
             ReminderScheduler.schedule(applicationContext, ExistingWorkPolicy.APPEND_OR_REPLACE)
         }

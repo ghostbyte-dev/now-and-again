@@ -90,4 +90,6 @@
 
     <string name="setting_widget">Home screen widget</string>
     <string name="setting_widget_action">Add</string>
+
+    <string name="cd_mark_done">Mark %1$s as done</string>
 </resources>

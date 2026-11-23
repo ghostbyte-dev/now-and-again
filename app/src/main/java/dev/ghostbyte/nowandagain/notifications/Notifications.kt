@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dev.ghostbyte.nowandagain.MainActivity
 import dev.ghostbyte.nowandagain.R
+import dev.ghostbyte.nowandagain.data.Task
 import dev.ghostbyte.nowandagain.domain.dueLabel
 import java.time.LocalDate
 
@@ -28,7 +29,9 @@ object Notifications {
     }
 
     @SuppressLint("MissingPermission") // areNotificationsEnabled() covers the permission
-    fun postDue(context: Context, tasks: List<dev.ghostbyte.nowandagain.data.Task>, today: LocalDate) {
+    fun postDue(
+        context: Context, tasks: List<Task>, today: LocalDate
+    ) {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
 
@@ -61,7 +64,9 @@ object Notifications {
                     )
                 )
             }
+
             builder.setContentTitle(context.getString(R.string.notification_title_many, tasks.size))
+                .setContentText(tasks.joinToString(", ") { it.name }).setStyle(inbox)
         }
 
         manager.notify(NOTIFICATION_ID, builder.build())

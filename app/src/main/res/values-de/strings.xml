@@ -79,4 +79,6 @@
 
     <string name="setting_widget">Startbildschirm-Widget</string>
     <string name="setting_widget_action">Hinzufügen</string>
+
+    <string name="cd_mark_done">%1$s als erledigt markieren</string>
 </resources>

@@ -124,6 +124,15 @@ import dev.ghostbyte.nowandagain.ui.theme.SettingsButton
 import dev.ghostbyte.nowandagain.ui.theme.barColor
 import dev.ghostbyte.nowandagain.widget.WidgetPinner
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.rememberDatePickerState
+import java.time.Instant
 
 private sealed interface SheetMode {
     data object Add : SheetMode
@@ -217,7 +226,10 @@ fun HomeScreen(
                                     val used = info.beforeContentPadding +
                                             visible.sumOf { it.size } +
                                             info.afterContentPadding
-                                    maxOf(footerMinPx, info.viewportSize.height + footerMinPx - used)
+                                    maxOf(
+                                        footerMinPx,
+                                        info.viewportSize.height + footerMinPx - used
+                                    )
                                 }
                             }
                         }
@@ -331,12 +343,12 @@ fun HomeScreen(
             TaskSheet(
                 initial = editing,
                 onDismiss = { sheetMode = null },
-                onSave = { name, days ->
+                onSave = { name, days, lastDone ->
                     if (editing == null) {
                         vm.addTask(name, days)
                         askForNotifications()
                     } else {
-                        vm.editTask(editing, name, days)
+                        vm.editTask(editing, name, days, lastDone)
                     }
                     sheetMode = null
                 },
@@ -522,7 +534,7 @@ private fun EmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
 private fun TaskSheet(
     initial: Task?,
     onDismiss: () -> Unit,
-    onSave: (String, Int) -> Unit,
+    onSave: (String, Int, LocalDate?) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var visible by remember { mutableStateOf(false) }
@@ -560,11 +572,15 @@ private fun TaskSheet(
 @Composable
 private fun SheetContent(
     initial: Task?,
-    onSave: (String, Int) -> Unit,
+    onSave: (String, Int, LocalDate?) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var name by remember { mutableStateOf(initial?.name ?: "") }
     var days by remember { mutableIntStateOf(initial?.intervalDays ?: 3) }
+
+    var lastDone by remember { mutableStateOf(initial?.lastDoneDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val dateFormat = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -603,7 +619,33 @@ private fun SheetContent(
             )
             Spacer(Modifier.height(24.dp))
             IntervalPicker(days = days, onChange = { days = it.coerceIn(1, MAX_INTERVAL) })
+
+            if (initial != null) {
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true }
+                        .padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        stringResource(R.string.field_last_done),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        lastDone?.format(dateFormat) ?: stringResource(R.string.last_done_never),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            }
+
             Spacer(Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -620,14 +662,64 @@ private fun SheetContent(
                     Spacer(Modifier.width(1.dp))
                 }
                 Button(
-                    onClick = { onSave(name, days) },
+                    onClick = { onSave(name, days, lastDone) },
                     enabled = name.isNotBlank(),
                     shape = MaterialTheme.shapes.small,
                 ) { Text(stringResource(R.string.action_save)) }
             }
         }
     }
+
+    if (showDatePicker) {
+        LastDoneDialog(
+            initial = lastDone,
+            onConfirm = { lastDone = it; showDatePicker = false },
+            onDismiss = { showDatePicker = false },
+        )
+    }
 }
+
+@Composable
+private fun LastDoneDialog(
+    initial: LocalDate?,
+    onConfirm: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val today = LocalDate.now()
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = (initial ?: today).toUtcMillis(),
+        selectableDates = object : SelectableDates {
+            // Only today or earlier: a task can't have been done in the future
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                utcTimeMillis <= today.toUtcMillis()
+
+            override fun isSelectableYear(year: Int) = year <= today.year
+        },
+    )
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = { state.selectedDateMillis?.let { onConfirm(it.toLocalDateUtc()) } },
+                enabled = state.selectedDateMillis != null,
+            ) { Text(stringResource(R.string.action_ok)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
+    ) {
+        DatePicker(state = state)
+    }
+}
+
+// The picker works with UTC midnight timestamps, so convert in UTC.
+// Using the local zone would give a date that's off by one in some time zones.
+private fun LocalDate.toUtcMillis(): Long =
+    atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+private fun Long.toLocalDateUtc(): LocalDate =
+    Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 
 private const val MAX_INTERVAL = 365
 
@@ -694,7 +786,6 @@ private fun IntervalPicker(days: Int, onChange: (Int) -> Unit) {
         }
     }
 }
-
 
 
 @Composable

@@ -81,4 +81,5 @@
     <string name="setting_widget_action">Hinzufügen</string>
 
     <string name="cd_mark_done">%1$s als erledigt markieren</string>
+    <string name="field_last_done">Zuletzt erledigt</string>
 </resources>

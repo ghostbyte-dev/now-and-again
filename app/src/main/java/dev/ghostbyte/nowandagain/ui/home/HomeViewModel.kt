@@ -83,9 +83,15 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.delete(task) }
     }
 
-    fun editTask(task: Task, name: String, intervalDays: Int) {
+    fun editTask(task: Task, name: String, intervalDays: Int, lastDone: LocalDate?) {
         viewModelScope.launch {
-            repo.update(task.copy(name = name.trim(), intervalDays = intervalDays))
+            repo.update(
+                task.copy(
+                    name = name.trim(),
+                    intervalDays = intervalDays,
+                    lastDoneDate = lastDone,
+                )
+            )
         }
     }
 

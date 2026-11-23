@@ -92,4 +92,5 @@
     <string name="setting_widget_action">Add</string>
 
     <string name="cd_mark_done">Mark %1$s as done</string>
+    <string name="field_last_done">Last done</string>
 </resources>

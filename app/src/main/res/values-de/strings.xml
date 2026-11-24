@@ -50,7 +50,7 @@
     <string name="widget_empty">Nichts zu erledigen</string>
 
     <string name="widget_hint_title">Bring deine Aufgaben auf den Startbildschirm</string>
-    <string name="widget_hint_body">Das Widget zeigt, was fällig ist, und du kannst Erledigt tippen, ohne die App zu öffnen.</string>
+    <string name="widget_hint_body">Sieh auf einen Blick was fällig ist, und hake Aufgaben direkt ab.</string>
     <string name="widget_hint_manual">Halte den Startbildschirm gedrückt, wähle Widgets und suche nach %1$s.</string>
     <string name="widget_hint_action">Widget hinzufügen</string>
     <string name="widget_hint_close">Hinweis ausblenden</string>

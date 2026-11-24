@@ -59,7 +59,7 @@
     <string name="widget_empty">Nothing to keep up with</string>
 
     <string name="widget_hint_title">Put your tasks on your home screen</string>
-    <string name="widget_hint_body">The widget shows what\'s due, and you can tap Done without opening the app.</string>
+    <string name="widget_hint_body">See what\'s due at a glance and tick tasks off right from your home screen.</string>
     <string name="widget_hint_manual">Long-press your home screen, choose Widgets and look for %1$s.</string>
     <string name="widget_hint_action">Add widget</string>
     <string name="widget_hint_close">Hide hint</string>

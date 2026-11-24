@@ -86,4 +86,7 @@
     <string name="field_last_done">Last done</string>
 
     <string name="section_widget">Widget</string>
+
+    <string name="section_language">Language</string>
+    <string name="language_system">System</string>
 </resources>

@@ -77,4 +77,6 @@
     <string name="cd_mark_done">%1$s als erledigt markieren</string>
     <string name="field_last_done">Zuletzt erledigt</string>
 
+    <string name="section_language">Sprache</string>
+    <string name="language_system">System</string>
 </resources>

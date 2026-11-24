@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +56,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.work.ExistingWorkPolicy
 import dev.ghostbyte.nowandagain.R
+import dev.ghostbyte.nowandagain.data.AppLanguage
 import dev.ghostbyte.nowandagain.data.SettingsRepository
 import dev.ghostbyte.nowandagain.data.ThemeMode
 import dev.ghostbyte.nowandagain.notifications.ReminderScheduler
@@ -151,7 +153,13 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
 
-// Reminder
+        // Language (per-app language needs Android 13+)
+        if (Build.VERSION.SDK_INT >= 33) {
+            SectionLabel(stringResource(R.string.section_language))
+            LanguagePicker()
+        }
+
+        // Reminder
         SectionLabel(stringResource(R.string.section_reminder))
         SettingsRow(
             title = stringResource(R.string.setting_reminder),
@@ -257,6 +265,40 @@ private fun SectionLabel(text: String) {
             .padding(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 8.dp)
             .semantics { heading() },
     )
+}
+
+@RequiresApi(33)
+@Composable
+private fun LanguagePicker() {
+    val context = LocalContext.current
+    var language by remember { mutableStateOf(AppLanguage.current(context)) }
+    val options = listOf(
+        null to stringResource(R.string.language_system),
+        "en" to "English",
+        "de" to "Deutsch",
+    )
+
+    SingleChoiceSegmentedButtonRow(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        options.forEachIndexed { index, (tag, label) ->
+            SegmentedButton(
+                selected = language == tag,
+                onClick = {
+                    language = tag
+                    AppLanguage.set(context, tag)
+                },
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size,
+                    baseShape = MaterialTheme.shapes.small,
+                ),
+                icon = {},
+            ) { Text(label) }
+        }
+    }
 }
 
 private fun toggleReminder(

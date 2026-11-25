@@ -558,7 +558,27 @@ private fun TaskSheet(
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
-    BackHandler(onBack = onDismiss)
+    var name by remember { mutableStateOf(initial?.name ?: "") }
+    var days by remember { mutableIntStateOf(initial?.intervalDays ?: 3) }
+    var lastDone by remember { mutableStateOf(initial?.lastDoneDate) }
+
+    val hasChanges = if (initial == null) {
+        name.isNotBlank()
+    } else {
+        name.trim() != initial.name.trim() ||
+                days != initial.intervalDays ||
+                lastDone != initial.lastDoneDate
+    }
+
+    fun handleDismiss() {
+        if (initial != null && name.isNotBlank() && hasChanges) {
+            onSave(name, days, lastDone)
+        } else {
+            onDismiss()
+        }
+    }
+
+    BackHandler(onBack = { handleDismiss() })
 
     Box(Modifier.fillMaxSize()) {
         AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
@@ -569,7 +589,7 @@ private fun TaskSheet(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = onDismiss,
+                        onClick = { handleDismiss() },
                     )
             )
         }
@@ -582,7 +602,19 @@ private fun TaskSheet(
             enter = slideInVertically(animationSpec = tween(300)) { it },
             exit = slideOutVertically(animationSpec = tween(200)) { it },
         ) {
-            SheetContent(initial, onSave, onDelete)
+            SheetContent(
+                initial = initial,
+                name = name,
+                onNameChange = { name = it },
+                days = days,
+                onDaysChange = { days = it },
+                lastDone = lastDone,
+                onLastDoneChange = { lastDone = it },
+                hasChanges = hasChanges,
+                onSave = { onSave(name, days, lastDone) },
+                onCancel = onDismiss,
+                onDelete = onDelete,
+            )
         }
     }
 }
@@ -622,13 +654,17 @@ private fun SegmentedProgressBar(
 @Composable
 private fun SheetContent(
     initial: Task?,
-    onSave: (String, Int, LocalDate?) -> Unit,
+    name: String,
+    onNameChange: (String) -> Unit,
+    days: Int,
+    onDaysChange: (Int) -> Unit,
+    lastDone: LocalDate?,
+    onLastDoneChange: (LocalDate) -> Unit,
+    hasChanges: Boolean,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
     onDelete: (() -> Unit)?,
 ) {
-    var name by remember { mutableStateOf(initial?.name ?: "") }
-    var days by remember { mutableIntStateOf(initial?.intervalDays ?: 3) }
-
-    var lastDone by remember { mutableStateOf(initial?.lastDoneDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     val dateFormat = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
 
@@ -655,7 +691,7 @@ private fun SheetContent(
         ) {
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = onNameChange,
                 label = { Text(stringResource(R.string.field_task)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -668,7 +704,7 @@ private fun SheetContent(
                     .focusRequester(focusRequester),
             )
             Spacer(Modifier.height(24.dp))
-            IntervalPicker(days = days, onChange = { days = it.coerceIn(1, MAX_INTERVAL) })
+            IntervalPicker(days = days, onChange = { onDaysChange(it.coerceIn(1, MAX_INTERVAL)) })
 
             if (initial != null) {
                 Spacer(Modifier.height(16.dp))
@@ -711,11 +747,19 @@ private fun SheetContent(
                 } else {
                     Spacer(Modifier.width(1.dp))
                 }
-                Button(
-                    onClick = { onSave(name, days, lastDone) },
-                    enabled = name.isNotBlank(),
-                    shape = MaterialTheme.shapes.small,
-                ) { Text(stringResource(R.string.action_save)) }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(onClick = onCancel) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                    Button(
+                        onClick = onSave,
+                        enabled = name.isNotBlank() && hasChanges,
+                        shape = MaterialTheme.shapes.small,
+                    ) { Text(stringResource(R.string.action_save)) }
+                }
             }
         }
     }
@@ -723,7 +767,7 @@ private fun SheetContent(
     if (showDatePicker) {
         LastDoneDialog(
             initial = lastDone,
-            onConfirm = { lastDone = it; showDatePicker = false },
+            onConfirm = { onLastDoneChange(it); showDatePicker = false },
             onDismiss = { showDatePicker = false },
         )
     }
